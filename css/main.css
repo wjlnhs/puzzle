@@ -150,6 +150,9 @@ h2{
 #puzzle{
 	background: url(../imgs/example.jpg) no-repeat;
 }
-.ui-sortable-handle.undrag{
-	transition: 1s;
+.ui-sortable-handle{
+	transition :transform 1s;
 }
+/*.ui-sortable-handle.undrag{*/
+	/*transition: 1s;*/
+/*}*/
