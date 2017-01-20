@@ -134,7 +134,7 @@ h2{
 #preview,
 #drop .preview{
 	background: url(../imgs/example.jpg) no-repeat;
-	background-size: 100%;
+	background-size: 100% 100%;
 }
 
 #puzzleContainer > div:last-child{
@@ -150,8 +150,16 @@ h2{
 #puzzle{
 	background: url(../imgs/example.jpg) no-repeat;
 }
+
+
+#puzzle, #puzzleDestination .preview{
+	background-size: 100% 100% !important;
+}
 .ui-sortable-handle{
-	transition :transform 1s;
+	transition :transform 1s, border 1s;
+}
+.btn-pause{
+	display: block!important;
 }
 /*.ui-sortable-handle.undrag{*/
 	/*transition: 1s;*/

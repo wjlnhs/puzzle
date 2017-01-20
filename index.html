@@ -7,17 +7,16 @@
 	<script src="../JQuery/jquery-2.1.1.min.js"></script>
 	<script src="../JQuery/jquery-ui-1.11.2/jquery-ui.min.js"></script>
 	<style>
-		#start,#end{
+		/*#start,#end{*/
+			/*display: none;*/
+		/*}*/
+		#end{
 			display: none;
 		}
 		#puzzle,#puzzleDestination{
 			position: relative;
 		}
-		.ui-state-default{
-			height: 166.7px;
-			width: 166.7px;
-		background: #999;;
-		}
+
 	</style>
 	<title>Custom Puzzle - WorldSkills 2015</title>
 </head>
@@ -48,7 +47,7 @@
 					<p>Drop your photo here!</p>
 				</div><!-- END DROP -->
 				<div class="group">
-					<button type="submit" name="submit" onclick="start.remove(); return false;">START</button>
+					<button  id="submit" >START</button>
 				</div>
 			</form>
 		</div>
@@ -95,7 +94,7 @@
 					</tr>
 				</tbody>
 			</table>
-			<button class="btn btn-restart" onclick="end.remove(); return false;">RESTART APPLICATION</button>
+			<button class="btn btn-restart" >RESTART APPLICATION</button>
 		</div>
 	</div><!-- END END -->
 
@@ -122,7 +121,7 @@
 			</div>
 
 			<div class="buttons">
-				<button class="btn btn-pause" onclick="end.remove(); return false;">PAUSE</button>
+				<button class="btn btn-pause">PAUSE</button>
 				<button class="btn btn-restart">RESTART</button>
 			</div>
 		</div>
