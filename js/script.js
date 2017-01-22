@@ -1,45 +1,45 @@
 
 $(function(){
-    //var Type='Easy';
-    var puzzle=function(Type){
+    var puzzle=function(Type,playername){
         this.bgsrc=$('#puzzle').css('background-image');
         this.$dragbox=$( "#puzzle" );
         this.$prviewbox=$( "#puzzleDestination" );
-        this.imgwidth=500;
         this.ondrag=false;//是否正在拖拽
         this.$compare=$();//将要比较的（预览的）
         this.$draging=$();//正在拖拽的
         this.prviewleft=this.$prviewbox.position().left;//
-        this.prviewtop=this.$prviewbox.position().top;//
         this.startIndex=100;
         this.second=0;
-        this.$rotate=$();
+        this.showsecond='0:00';
+        this.$btnpause=$('.btn-pause');
+        this.$playername=$('#playername');
         this.TypeObj={
             EASY:4,
             HARD:9
         }
+        this.Type=Type;
+        this.playername=playername;
         this.ispause=false;
         this.COUNT=this.TypeObj[Type];
         this.init=function(){
-            this.initRotate();//添加旋转事件
             var This=this;
-            // $('#puzzle').css({height:501,width:501})
+            this.$playername.text(playername);
+            this.initRotate();//添加旋转事件
             this.restart();
             $('.btn-restart').on('click',function(){
                 This.second=0;
-                This.restart();
+                $('#start').show();
+                $('#end').hide();
             })
-            $('.btn-pause').on('click',function(){
+            This.$btnpause.on('click',function(){
                 if(This.ispause){
-                    This.initTimer();
-                    This.ispause=false;
+                   This.onResume();
                 }else{
-                    clearInterval(This.timer);
-                    This.ispause=true;
+                   This.onPause();
                 }
             })
-
         }
+        this.init();
     }
     puzzle.prototype={
         constructor:puzzle,
@@ -55,6 +55,7 @@ $(function(){
             var dis=Math.sqrt((dis_x*dis_x)+(dis_y*dis_y));
             return dis<=helfw;
         },
+
         initTimer:function(){
             var This=this;
             clearInterval(This.timer);
@@ -63,20 +64,60 @@ $(function(){
                 var min=parseInt(This.second/60);
                 var second=(This.second%60).toString();
                 second=second.length==1 ? ('0'+second) : second;
-                $('#timer span').text(min+' ：'+second);
+                This.showsecond=min+' ：'+second;
+                $('#timer span').text(This.showsecond);
             },1000)
+        },
+        onResume:function(){
+            this.initTimer();
+            this.ispause=false;
+            this.$btnpause.text('PAUSE');
+            this.$dragbox.show();
+            this.$prviewbox.show();
+        },
+        onPause:function(){
+            clearInterval(this.timer);
+            this.ispause=true;
+            this.$btnpause.text('RESUME');
+            this.$dragbox.hide();
+            this.$prviewbox.hide();
+        },
+        showEnd:function(){
+            $('#end').show();
+            var users=JSON.parse(localStorage['users'] || '[]');
+            var cuitem={
+                second: this.second,
+                showsecond:this.showsecond,
+                playername:this.playername,
+                type:this.Type,
+                iscuitem:true
+            }
+            users.push(cuitem);
+            var sortusers=users.sort(function(a,b){
+                return a.second-b.second;
+            })
+            var html='';
+            var cuitemhtml='';
+            $.each(sortusers,function(index,item){
+                if(index<3){
+                    html+='<tr><td>'+(index+1)+'</td><td>'+item.type+'</td><td>'+item.playername+'</td><td>'+item.showsecond+'</td></tr>'
+                }
+                if(item.iscuitem){
+                    cuitemhtml+='<tr><td>'+(index+1)+'</td><td>'+item.type+'</td><td>'+item.playername+'</td><td>'+item.showsecond+'</td></tr>'
+                }
+            })
+            delete cuitem.iscuitem;
+            html+=cuitemhtml;
+            $('#end tbody').html(html);
+            localStorage.setItem('users',JSON.stringify(users));
         },
         restart:function(){
             var This=this;
-            this.initTimer();
+            this.onResume.call(this);
             this.$blanks=this.creatdiv($('#puzzle'));
             this.$blanksPrview=this.creatdiv(this.$prviewbox,true);
             this.$dragbox.sortable({
                 connectWith: '#puzzle',
-                //forceHelperSize:true,
-                //helper:'clone',
-                // appendTo: '#puzzle',
-                // opacity: 0.6,
                 placeholderType:false,
                 start :function(event, ui){
                     if(This.ispause){
@@ -84,9 +125,14 @@ $(function(){
                     }
                     This.ondrag=true;
                     This.$draging=ui.item;
-                    $('.ui-sortable-handle').removeClass('undrag')
+                    $('.ui-sortable-handle').removeClass('undrag');
                     var sortindex=This.$draging.attr('sortindex');
                     This.$compare=This.$prviewbox.find('[sortindex='+sortindex+']');
+                    This.$draging.addClass('isdraging');
+                    This.$draging.attr('rotate')
+                    This.$draging.css({
+                        transform:'rotateZ('+This.$draging.attr('rotate')+'deg) scale(1.1)'
+                    });
                     console.log(ui)
                 },
                 sort:function(event, ui){
@@ -95,6 +141,7 @@ $(function(){
                 },
                 beforeStop:function(event, ui){
                     This.$rotate=ui.helper;
+                    This.$draging.removeClass('isdraging');
                     var isIn=This.isInclude(ui, This.$compare);
                     This.$draging.css({
                         left:ui.position.left,
@@ -113,6 +160,7 @@ $(function(){
                                 This.$compare.animate({
                                     opacity:1
                                 },function(){
+                                    //全部完成
                                     if(This.$dragbox.find('div').length==0){
                                         This.$prviewbox.find('>div').hide();
                                         This.$prviewbox.css({
@@ -120,15 +168,20 @@ $(function(){
                                             'background-repeat':'no-repeat',
                                             'background-size':'500px 500px'
                                         })
+                                        This.showEnd();
                                     }
 
                                 });
                             })
                         }else{
+                            This.$draging.css({
+                                transform:'rotateZ('+This.$draging.attr('rotate')+'deg) scale(1)'
+                            })
                             This.$draging.animate({
                                 'left':parseInt(This.$draging.attr('initleft')),
                                 'top':parseInt(This.$draging.attr('inittop'))
                             })
+
                         }
                     })
                     This.ondrag=false;
@@ -143,16 +196,15 @@ $(function(){
                     return;
                 }
                 if(ev.keyCode==37){//左
-                    //   This.$draging.css('background','red')
                     var nextRotate=parseInt(This.$draging.attr('rotate'))+90;
                     This.$draging.css({
-                        transform:'rotateZ('+nextRotate+'deg)'
+                        transform:'rotateZ('+nextRotate+'deg) scale(1.1)'
                     })
                     This.$draging.attr('rotate',nextRotate)
                 }else if(ev.keyCode==39){//右
                     var nextRotate=parseInt(This.$draging.attr('rotate'))-90;
                     This.$draging.css({
-                        transform:'rotateZ('+nextRotate+'deg)'
+                        transform:'rotateZ('+nextRotate+'deg) scale(1.1)'
                     })
                     This.$draging.attr('rotate',nextRotate)
                 }
@@ -211,7 +263,7 @@ $(function(){
                 if(isPrview){
                     $blank.css({
                         opacity:0.6,
-                        border:'none',
+                        border:'none'
                     })
                 }
             })
@@ -280,16 +332,17 @@ $(function(){
                     alert('用户名不能为空！');
                     return false;
                 }
+                $('#puzzle, #puzzleDestination, .preview').css({
+                    'background-image':$('.preview').css('background-image'),
+                    'background-size':'100% 100%'
+                });
                 This.Type=$('#difficult option:selected').text();
                 This.UserName=username;
-                var mypuzzle=new puzzle(This.Type);
-                mypuzzle.init();
-                start.remove();
+                var mypuzzle=new puzzle(This.Type,username);
+                $('#start').hide();
                 return false;
             })
         }
     }
     var myPage=new Page();
-    // var mypuzzle=new puzzle(Type);
-    // mypuzzle.init();
 })
