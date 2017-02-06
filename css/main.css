@@ -156,13 +156,14 @@ h2{
 	background-size: 100% 100% !important;
 }
 .ui-sortable-handle{
-	transition :transform 1s, border 1s, box-shadow .5s;
+	transition :box-shadow .5s;
 	box-shadow: rgba(0, 0, 0, 0) 0px 0px 20px 10px;
 }
 .btn-pause{
 	display: block!important;
 }
 .ui-sortable-handle.isdraging{
+	transition :transform .5s, border 1s, box-shadow .5s;
 	box-shadow: rgba(0, 0, 0, 0.4) 0px 0px 20px 10px;
 }
 #end{
@@ -170,4 +171,7 @@ h2{
 }
 #puzzle,#puzzleDestination{
 	position: relative;
+}
+html{
+	visibility: hidden;
 }
